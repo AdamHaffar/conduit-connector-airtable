@@ -3,9 +3,8 @@ package config
 import "errors"
 
 const (
-	GlobalConfigParam      = "global_config"
-	SourceConfigParam      = "source_config"
-	DestinationConfigParam = "destination_config"
+	GlobalConfigParam = "global_config"
+	BaseID            = "baseID"
 )
 
 var Required = []string{GlobalConfigParam}
