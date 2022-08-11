@@ -2,6 +2,7 @@ package source
 
 import (
 	"context"
+	"fmt"
 	"github.com/AdamHaffar/conduit-connector-airtable/config"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -22,11 +23,13 @@ func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
 	sdk.Logger(ctx).Info().Msg("Configuring a Source Connector...")
 	SourceConfig, err := config.ParseBaseConfig(cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("couldn't parse the source config: %w", err)
 	}
 
 	s.config = SourceConfig
-	return nil
+	sdk.Logger(ctx).Info().Msg("Successfully configured the source connector")
+
+	return err
 }
 
 func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
