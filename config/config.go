@@ -31,7 +31,7 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 
 	api, ok := cfg[APIKey]
 	if !ok {
-		return Config{}, fmt.Errorf("%q config value must be set", TableID)
+		return Config{}, fmt.Errorf("%q config value must be set", APIKey)
 	}
 	err = checkFormat(api, "key")
 	if err != nil {
