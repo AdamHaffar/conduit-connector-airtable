@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	APIKey  = "api_key"
 	BaseID  = "base_ID"  //required
 	TableID = "table_ID" //required
 )
@@ -16,6 +17,7 @@ var (
 )
 
 type Config struct {
+	apiKey  string
 	baseID  string
 	tableID string
 }
@@ -25,6 +27,15 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 	err := checkEmpty(cfg)
 	if err != nil {
 		return Config{}, fmt.Errorf("map must not be empty")
+	}
+
+	api, ok := cfg[APIKey]
+	if !ok {
+		return Config{}, fmt.Errorf("%q config value must be set", TableID)
+	}
+	err = checkFormat(api, "key")
+	if err != nil {
+		return Config{}, err
 	}
 
 	base, ok := cfg[BaseID]
