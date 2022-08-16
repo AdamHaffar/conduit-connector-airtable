@@ -31,38 +31,38 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 		return Config{}, fmt.Errorf("map must not be empty")
 	}
 
-	BaseID, ok := cfg[BaseID]
+	base, ok := cfg[BaseID]
 	if !ok {
 		return Config{}, fmt.Errorf("%q config value must be set", BaseID)
 	}
-	err = checkFormat(BaseID, "app")
+	err = checkFormat(base, "app")
 	if err != nil {
 		return Config{}, err
 	}
 
-	TableID, ok := cfg[TableID]
+	table, ok := cfg[TableID]
 	if !ok {
 		return Config{}, fmt.Errorf("%q config value must be set", TableID)
 	}
-	err = checkFormat(TableID, "tbl")
+	err = checkFormat(table, "tbl")
 	if err != nil {
 		return Config{}, err
 	}
 
-	ViewID, ok := cfg[ViewID]
+	view, ok := cfg[ViewID]
 	if !ok {
 		return Config{}, fmt.Errorf("%q config value must be set", ViewID)
 	}
-	err = checkFormat(ViewID, "viw")
+	err = checkFormat(view, "viw")
 	if err != nil {
 		return Config{}, err
 	}
 
-	RecordID, ok := cfg[RecordID]
+	record, ok := cfg[RecordID]
 	if !ok {
 		return Config{}, fmt.Errorf("%q config value must be set", RecordID)
 	}
-	err = checkFormat(RecordID, "rec")
+	err = checkFormat(record, "rec")
 	if err != nil {
 		return Config{}, err
 	}
