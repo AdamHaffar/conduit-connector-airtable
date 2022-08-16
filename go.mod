@@ -7,7 +7,6 @@ require github.com/conduitio/conduit-connector-sdk v0.2.1-0.20220803121801-c861a
 require (
 	github.com/conduitio/conduit-connector-protocol v0.2.1-0.20220802135043-4b89a6c94401 // indirect
 	github.com/fatih/color v1.7.0 // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/go-hclog v0.14.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.3 // indirect
@@ -20,7 +19,6 @@ require (
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/rs/zerolog v1.27.0 // indirect
 	go.buf.build/grpc/go/conduitio/conduit-connector-protocol v1.3.3 // indirect
-	go.buf.build/library/go-grpc/conduitio/conduit-connector-protocol v1.4.1 // indirect
 	go.uber.org/goleak v1.1.12 // indirect
 	golang.org/x/net v0.0.0-20211108170745-6635138e15ea // indirect
 	golang.org/x/sys v0.0.0-20220405052023-b1e9470b6e64 // indirect

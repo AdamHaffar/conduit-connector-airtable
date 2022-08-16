@@ -29,7 +29,7 @@ func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
 	s.config = SourceConfig
 	sdk.Logger(ctx).Info().Msg("Successfully configured the source connector")
 
-	return err
+	return nil
 }
 
 func (s *Source) Open(ctx context.Context, pos sdk.Position) error {

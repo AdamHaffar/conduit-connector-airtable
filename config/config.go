@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 const (
@@ -86,32 +87,8 @@ func checkFormat(s string, ID string) error {
 	if len(s) != 17 {
 		return fmt.Errorf("id must be 17 characters long")
 	}
-
-	s = s[0:2]
-
-	switch ID {
-
-	case "app":
-		if s != ID {
-			return fmt.Errorf("id must start with 'app'")
-		}
-
-	case "tbl":
-		if s != ID {
-			return fmt.Errorf("id must start with 'tbl'")
-		}
-
-	case "viw":
-		if s != ID {
-			return fmt.Errorf("id must start with 'viw'")
-		}
-
-	case "rec":
-		if s != ID {
-			return fmt.Errorf("id must start with 'rec'")
-		}
-
+	if !strings.HasPrefix(s, ID) {
+		return fmt.Errorf("id must start with %v", ID)
 	}
-
 	return nil
 }
