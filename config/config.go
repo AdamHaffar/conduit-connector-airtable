@@ -7,10 +7,8 @@ import (
 )
 
 const (
-	BaseID   = "base_ID" //required
-	TableID  = "table_ID"
-	ViewID   = "view_ID"
-	RecordID = "record_ID"
+	BaseID  = "base_ID"  //required
+	TableID = "table_ID" //required
 )
 
 var (
@@ -18,10 +16,8 @@ var (
 )
 
 type Config struct {
-	baseID   string
-	tableID  string
-	viewID   string
-	recordID string
+	baseID  string
+	tableID string
 }
 
 func ParseBaseConfig(cfg map[string]string) (Config, error) {
@@ -49,29 +45,9 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 		return Config{}, err
 	}
 
-	view, ok := cfg[ViewID]
-	if !ok {
-		return Config{}, fmt.Errorf("%q config value must be set", ViewID)
-	}
-	err = checkFormat(view, "viw")
-	if err != nil {
-		return Config{}, err
-	}
-
-	record, ok := cfg[RecordID]
-	if !ok {
-		return Config{}, fmt.Errorf("%q config value must be set", RecordID)
-	}
-	err = checkFormat(record, "rec")
-	if err != nil {
-		return Config{}, err
-	}
-
 	return Config{
-		baseID:   cfg[BaseID],
-		tableID:  cfg[TableID],
-		viewID:   cfg[ViewID],
-		recordID: cfg[RecordID],
+		baseID:  cfg[BaseID],
+		tableID: cfg[TableID],
 	}, nil
 }
 
