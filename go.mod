@@ -15,6 +15,7 @@ require (
 	github.com/matryer/is v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mehanizm/airtable v0.2.6 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/rs/zerolog v1.27.0 // indirect

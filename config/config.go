@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	APIKey  = "api_key"
+	APIKey  = "api_key"  //required
 	BaseID  = "base_ID"  //required
 	TableID = "table_ID" //required
 )
@@ -20,6 +20,7 @@ type Config struct {
 	apiKey  string
 	baseID  string
 	tableID string
+	url     string
 }
 
 func ParseBaseConfig(cfg map[string]string) (Config, error) {
@@ -56,9 +57,13 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 		return Config{}, err
 	}
 
+	urlStr := "https://airtable.com/" + base + table
+
 	return Config{
+		apiKey:  cfg[api],
 		baseID:  cfg[BaseID],
 		tableID: cfg[TableID],
+		url:     cfg[urlStr],
 	}, nil
 }
 

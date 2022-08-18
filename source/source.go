@@ -6,11 +6,12 @@ import (
 	"github.com/AdamHaffar/conduit-connector-airtable/config"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
+	airtableclient "github.com/mehanizm/airtable"
 )
 
 type Source struct {
 	sdk.UnimplementedSource
-
+	client           *airtableclient.Client
 	config           config.Config
 	lastPositionRead sdk.Position
 }
@@ -33,6 +34,17 @@ func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
 }
 
 func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
+	logger := sdk.Logger(ctx).With().Str("Class", "Source").Str("Method", "Open").Logger()
+	logger.Trace().Msg("Starting Open the Source Connector...")
+
+	s.client = airtableclient.NewClient(config.APIKey)
+
+	err := s.client.SetBaseURL("")
+	if err != nil {
+		logger.Error().Stack().Err(err).Msg("Error while setting the Base URL")
+		return fmt.Errorf("couldn't set base url %w", err)
+	}
+
 	return nil
 }
 
