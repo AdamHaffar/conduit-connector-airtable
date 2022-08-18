@@ -17,10 +17,10 @@ var (
 )
 
 type Config struct {
-	apiKey  string
-	baseID  string
-	tableID string
-	url     string
+	APIKey  string
+	BaseID  string
+	TableID string
+	URL     string
 }
 
 func ParseBaseConfig(cfg map[string]string) (Config, error) {
@@ -57,13 +57,11 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 		return Config{}, err
 	}
 
-	urlStr := "https://airtable.com/" + base + table
-
 	return Config{
-		apiKey:  cfg[api],
-		baseID:  cfg[BaseID],
-		tableID: cfg[TableID],
-		url:     cfg[urlStr],
+		APIKey:  cfg[APIKey],
+		BaseID:  cfg[BaseID],
+		TableID: cfg[TableID],
+		URL:     "https://airtable.com/" + base + table,
 	}, nil
 }
 

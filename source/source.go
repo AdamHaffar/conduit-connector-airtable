@@ -37,9 +37,10 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 	logger := sdk.Logger(ctx).With().Str("Class", "Source").Str("Method", "Open").Logger()
 	logger.Trace().Msg("Starting Open the Source Connector...")
 
-	s.client = airtableclient.NewClient(config.APIKey)
+	s.client = airtableclient.NewClient(s.config.APIKey)
 
-	err := s.client.SetBaseURL("")
+	err := s.client.SetBaseURL(s.config.URL)
+
 	if err != nil {
 		logger.Error().Stack().Err(err).Msg("Error while setting the Base URL")
 		return fmt.Errorf("couldn't set base url %w", err)
