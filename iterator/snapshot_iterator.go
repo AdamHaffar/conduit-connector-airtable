@@ -45,3 +45,6 @@ func (w *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 }
 func (w *SnapshotIterator) Stop() {
 }
+
+func (s *SnapshotIterator) prepareRecord(ctx context.Context, data []string) (sdk.Record, error) {
+}
