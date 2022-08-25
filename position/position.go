@@ -7,7 +7,7 @@ import (
 )
 
 type Position struct {
-	index int
+	Index int
 }
 
 func (p Position) ToRecordPosition() (sdk.Position, error) {
