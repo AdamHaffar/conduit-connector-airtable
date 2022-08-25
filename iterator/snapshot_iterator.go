@@ -5,6 +5,7 @@ import (
 	"github.com/AdamHaffar/conduit-connector-airtable/config"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	airtableclient "github.com/mehanizm/airtable"
+	"encoding/binary"
 )
 
 type SnapshotIterator struct {
@@ -13,7 +14,7 @@ type SnapshotIterator struct {
 	internalPos int
 }
 
-func NewSnapshotIterator(client airtableclient.Client, config config.Config, pos int) (*SnapshotIterator, error) {
+func NewSnapshotIterator(ctx context.Context,client airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
 
 	table := client.GetTable(config.BaseID, config.TableID)
 
@@ -26,9 +27,9 @@ func NewSnapshotIterator(client airtableclient.Client, config config.Config, pos
 	//records successful
 
 	s := &SnapshotIterator{
-		client:      &client,
+		client:      client,
 		data:        records,
-		internalPos: 0,
+		internalPos: ,
 	}
 	return s, nil
 }

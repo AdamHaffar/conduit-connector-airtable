@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/AdamHaffar/conduit-connector-airtable/config"
+	"github.com/AdamHaffar/conduit-connector-airtable/iterator"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	airtableclient "github.com/mehanizm/airtable"
@@ -14,6 +15,7 @@ type Source struct {
 	client           *airtableclient.Client
 	config           config.Config
 	lastPositionRead sdk.Position
+	iterator         Iterator
 }
 
 func NewSource() sdk.Source {
@@ -49,6 +51,12 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 	if err != nil {
 		logger.Error().Stack().Err(err).Msg("Error while setting the Base URL")
 		return fmt.Errorf("could not set base url %w", err)
+	}
+
+	s.iterator, err = iterator.NewSnapshotIterator(ctx, &s.client, s.config, pos)
+	if err != nil {
+		logger.Error().Stack().Err(err).Msg("Error while create a combined iterator")
+		return fmt.Errorf("couldn't create a combined iterator: %w", err)
 	}
 
 	logger.Trace().Msg("Successfully Created the Source Connector")
