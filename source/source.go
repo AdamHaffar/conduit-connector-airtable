@@ -53,10 +53,11 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 		return fmt.Errorf("could not set base url %w", err)
 	}
 
-	s.iterator, err = iterator.NewSnapshotIterator(ctx, &s.client, s.config, pos)
+	s.iterator, err = iterator.NewSnapshotIterator(ctx, s.client, s.config, pos)
+
 	if err != nil {
-		logger.Error().Stack().Err(err).Msg("Error while create a combined iterator")
-		return fmt.Errorf("couldn't create a combined iterator: %w", err)
+		logger.Error().Stack().Err(err).Msg("Error while creating iterator")
+		return fmt.Errorf("couldn't create an iterator: %w", err)
 	}
 
 	logger.Trace().Msg("Successfully Created the Source Connector")
@@ -68,7 +69,18 @@ func (s *Source) Read(ctx context.Context) (sdk.Record, error) {
 	logger := sdk.Logger(ctx).With().Str("Class", "Source").Str("Method", "Read").Logger()
 	logger.Trace().Msg("Starting Read the Source Connector...")
 
-	return sdk.Record{}, nil
+	if !s.iterator.HasNext(ctx) {
+		logger.Debug().Msg("No more records to read, sending sdk.ErrorBackoff...")
+		return sdk.Record{}, sdk.ErrBackoffRetry
+	}
+
+	record, err := s.iterator.Next(ctx)
+	if err != nil {
+		logger.Error().Stack().Err(err).Msg("Error while fetching the records")
+		return sdk.Record{}, fmt.Errorf("couldn't fetch the records: %w", err)
+	}
+	return record, nil
+
 }
 
 func (s *Source) Ack(ctx context.Context, position sdk.Position) error {

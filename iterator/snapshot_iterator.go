@@ -9,12 +9,12 @@ import (
 )
 
 type SnapshotIterator struct {
-	client      airtableclient.Client
+	client      *airtableclient.Client
 	data        *airtableclient.Records
 	internalPos position.Position
 }
 
-func NewSnapshotIterator(ctx context.Context, client airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
+func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
 
 	table := client.GetTable(config.BaseID, config.TableID)
 	records, err := table.GetRecords().
