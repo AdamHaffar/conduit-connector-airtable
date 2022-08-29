@@ -62,8 +62,6 @@ func (s *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 
 	return rec, nil
 }
-func (s *SnapshotIterator) Stop() {
-}
 
 func (s *SnapshotIterator) buildRecordPosition() sdk.Position {
 

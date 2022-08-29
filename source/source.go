@@ -1,4 +1,4 @@
-package source
+package airtable
 
 import (
 	"context"
@@ -25,11 +25,11 @@ func NewSource() sdk.Source {
 type Iterator interface {
 	HasNext(ctx context.Context) bool
 	Next(ctx context.Context) (sdk.Record, error)
-	Stop()
 }
 
 func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
 	sdk.Logger(ctx).Info().Msg("Configuring a Source Connector...")
+
 	SourceConfig, err := config.ParseBaseConfig(cfg)
 	if err != nil {
 		return fmt.Errorf("couldn't parse the source config: %w", err)
@@ -84,6 +84,7 @@ func (s *Source) Read(ctx context.Context) (sdk.Record, error) {
 }
 
 func (s *Source) Ack(ctx context.Context, position sdk.Position) error {
+	sdk.Logger(ctx).Debug().Str("position", string(position)).Msg("got ack")
 	return nil
 }
 
