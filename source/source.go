@@ -47,14 +47,15 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 
 	s.client = airtableclient.NewClient(s.config.APIKey)
 
-	err := s.client.SetBaseURL(s.config.URL)
-	if err != nil {
-		logger.Error().Stack().Err(err).Msg("Error while setting the Base URL")
-		return fmt.Errorf("could not set base url %w", err)
-	}
+	//err := s.client.SetBaseURL(s.config.URL)
+	//if err != nil {
+	//	logger.Error().Stack().Err(err).Msg("Error while setting the Base URL")
+	//	return fmt.Errorf("could not set base url %w", err)
+	//}
+
+	var err error
 
 	s.iterator, err = iterator.NewSnapshotIterator(ctx, s.client, s.config, pos)
-
 	if err != nil {
 		logger.Error().Stack().Err(err).Msg("Error while creating iterator")
 		return fmt.Errorf("couldn't create an iterator: %w", err)
@@ -67,7 +68,7 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 
 func (s *Source) Read(ctx context.Context) (sdk.Record, error) {
 	logger := sdk.Logger(ctx).With().Str("Class", "Source").Str("Method", "Read").Logger()
-	logger.Trace().Msg("Starting Read the Source Connector...")
+	logger.Trace().Msg("Starting Read the Source Connector")
 
 	if !s.iterator.HasNext(ctx) {
 		logger.Debug().Msg("No more records to read, sending sdk.ErrorBackoff...")

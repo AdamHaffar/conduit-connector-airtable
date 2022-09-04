@@ -16,21 +16,24 @@ type SnapshotIterator struct {
 
 func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
 
+	sdk.Logger(ctx).Info().Msgf("%v %v", config.BaseID, config.TableID)
+
 	table := client.GetTable(config.BaseID, config.TableID)
 	records, err := table.GetRecords().
 		InStringFormat("Europe/London", "en-gb").
 		Do()
 	if err != nil {
-		//handle error records not returned
+		sdk.Logger(ctx).Info().Msgf("%v", err)
 	}
 	//records successful
 
 	NewPos, err := position.ParseRecordPosition(pos)
 	if err != nil {
-		//parse error
+		sdk.Logger(ctx).Info().Msgf("##############BB")
 	}
 	//parse complete
 
+	sdk.Logger(ctx).Info().Msgf("%v", records)
 	s := &SnapshotIterator{
 		client:      client,
 		data:        records,
@@ -40,9 +43,12 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 }
 
 func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
-	if s.internalPos.Index == len(s.data.Records)+1 {
+	//sdk.Logger(ctx).Info().Msgf("index: %v || record: %v \n", s.internalPos.Index, s.data.Records[s.internalPos.Index].Fields)
+
+	if s.internalPos.Index == len(s.data.Records) {
 		return false
 	}
+
 	return true
 }
 
@@ -56,10 +62,10 @@ func (s *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 	rec := sdk.Util.Source.NewRecordSnapshot(
 		s.buildRecordPosition(),
 		s.buildRecordMetadata(),
-		s.buildRecordKey(),
-		s.buildRecordPayload(),
+		s.buildRecordKey(ctx),
+		s.buildRecordPayload(ctx),
 	)
-
+	//sdk.Logger(ctx).Info().Msgf("RETURNED: %v", s.data.Records[s.internalPos.Index-1].Fields)
 	return rec, nil
 }
 
@@ -82,15 +88,13 @@ func (s *SnapshotIterator) buildRecordMetadata() map[string]string {
 }
 
 // buildRecordKey returns the key for the record.
-func (s *SnapshotIterator) buildRecordKey() sdk.Data {
-
-	key := s.data.Records[s.internalPos.Index].ID //ID of individual record
-
+func (s *SnapshotIterator) buildRecordKey(ctx context.Context) sdk.Data {
+	key := s.data.Records[s.internalPos.Index-1].ID //ID of individual record
 	return sdk.StructuredData{
 		"RecordID": key}
 }
 
-func (s *SnapshotIterator) buildRecordPayload() sdk.Data {
-	payload := s.data.Records[s.internalPos.Index].Fields
+func (s *SnapshotIterator) buildRecordPayload(ctx context.Context) sdk.Data {
+	payload := s.data.Records[s.internalPos.Index-1].Fields
 	return sdk.StructuredData{"Record": payload}
 }
