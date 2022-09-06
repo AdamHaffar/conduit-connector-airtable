@@ -2,6 +2,7 @@ package iterator
 
 import (
 	"context"
+	"fmt"
 	"github.com/AdamHaffar/conduit-connector-airtable/config"
 	"github.com/AdamHaffar/conduit-connector-airtable/position"
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -15,23 +16,21 @@ type SnapshotIterator struct {
 }
 
 func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
-
-	sdk.Logger(ctx).Info().Msgf("%v %v", config.BaseID, config.TableID)
+	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "NewSnapshotIterator").Logger()
+	logger.Trace().Msg("Creating new snapshot iterator")
 
 	table := client.GetTable(config.BaseID, config.TableID)
 	records, err := table.GetRecords().
 		InStringFormat("Europe/London", "en-gb").
 		Do()
 	if err != nil {
-		sdk.Logger(ctx).Info().Msgf("%v", err)
+		return &SnapshotIterator{}, fmt.Errorf("error while getting records")
 	}
-	//records successful
 
 	NewPos, err := position.ParseRecordPosition(pos)
 	if err != nil {
-		sdk.Logger(ctx).Info().Msgf("##############BB")
+		return &SnapshotIterator{}, err
 	}
-	//parse complete
 
 	sdk.Logger(ctx).Info().Msgf("%v", records)
 	s := &SnapshotIterator{
@@ -39,11 +38,13 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 		data:        records,
 		internalPos: NewPos,
 	}
+
 	return s, nil
 }
 
 func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
-	//sdk.Logger(ctx).Info().Msgf("index: %v || record: %v \n", s.internalPos.Index, s.data.Records[s.internalPos.Index].Fields)
+	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "HasNext").Logger()
+	logger.Trace().Msg("HasNext()")
 
 	if s.internalPos.Index == len(s.data.Records) {
 		return false
@@ -53,6 +54,8 @@ func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
 }
 
 func (s *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
+	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "Next").Logger()
+	logger.Trace().Msg("Next()")
 
 	if err := ctx.Err(); err != nil {
 		return sdk.Record{}, err
@@ -62,10 +65,10 @@ func (s *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 	rec := sdk.Util.Source.NewRecordSnapshot(
 		s.buildRecordPosition(),
 		s.buildRecordMetadata(),
-		s.buildRecordKey(ctx),
-		s.buildRecordPayload(ctx),
+		s.buildRecordKey(),
+		s.buildRecordPayload(),
 	)
-	//sdk.Logger(ctx).Info().Msgf("RETURNED: %v", s.data.Records[s.internalPos.Index-1].Fields)
+
 	return rec, nil
 }
 
@@ -73,9 +76,8 @@ func (s *SnapshotIterator) buildRecordPosition() sdk.Position {
 
 	pos, err := s.internalPos.ToRecordPosition()
 	if err != nil {
-		//marshall error
+		return nil
 	}
-	//marshall complete
 
 	return pos
 }
@@ -88,13 +90,13 @@ func (s *SnapshotIterator) buildRecordMetadata() map[string]string {
 }
 
 // buildRecordKey returns the key for the record.
-func (s *SnapshotIterator) buildRecordKey(ctx context.Context) sdk.Data {
+func (s *SnapshotIterator) buildRecordKey() sdk.Data {
 	key := s.data.Records[s.internalPos.Index-1].ID //ID of individual record
 	return sdk.StructuredData{
 		"RecordID": key}
 }
 
-func (s *SnapshotIterator) buildRecordPayload(ctx context.Context) sdk.Data {
+func (s *SnapshotIterator) buildRecordPayload() sdk.Data {
 	payload := s.data.Records[s.internalPos.Index-1].Fields
-	return sdk.StructuredData{"Record": payload}
+	return sdk.StructuredData{"Record Payload": payload}
 }

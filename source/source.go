@@ -42,16 +42,11 @@ func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
 }
 
 func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
+
 	logger := sdk.Logger(ctx).With().Str("Class", "Source").Str("Method", "Open").Logger()
 	logger.Trace().Msg("Starting Open the Source Connector...")
 
 	s.client = airtableclient.NewClient(s.config.APIKey)
-
-	//err := s.client.SetBaseURL(s.config.URL)
-	//if err != nil {
-	//	logger.Error().Stack().Err(err).Msg("Error while setting the Base URL")
-	//	return fmt.Errorf("could not set base url %w", err)
-	//}
 
 	var err error
 
@@ -62,7 +57,6 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 	}
 
 	logger.Trace().Msg("Successfully Created the Source Connector")
-
 	return nil
 }
 
@@ -90,5 +84,7 @@ func (s *Source) Ack(ctx context.Context, position sdk.Position) error {
 }
 
 func (s *Source) Teardown(ctx context.Context) error {
+	logger := sdk.Logger(ctx).With().Str("Class", "Source").Str("Method", "Teardown").Logger()
+	logger.Trace().Msg("Tearing down the the Source Connector")
 	return nil
 }

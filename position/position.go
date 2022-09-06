@@ -2,7 +2,6 @@ package position
 
 import (
 	"encoding/json"
-
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -16,7 +15,6 @@ func (p Position) ToRecordPosition() (sdk.Position, error) {
 
 func ParseRecordPosition(p sdk.Position) (Position, error) {
 	if p == nil {
-		// empty Position would have the fields with their default values
 		return Position{}, nil
 	}
 	var pos Position
