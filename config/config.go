@@ -3,13 +3,16 @@ package config
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
 const (
-	APIKey  = "api_key"  //required
-	BaseID  = "base_ID"  //required
-	TableID = "table_ID" //required
+	APIKey    = "api_key"    //required
+	BaseID    = "base_ID"    //required
+	TableID   = "table_ID"   //required
+	EnableCDC = "enable_cdc" //required
+
 )
 
 var (
@@ -17,10 +20,10 @@ var (
 )
 
 type Config struct {
-	APIKey  string
-	BaseID  string
-	TableID string
-	URL     string
+	APIKey    string
+	BaseID    string
+	TableID   string
+	EnableCDC bool
 }
 
 func ParseBaseConfig(cfg map[string]string) (Config, error) {
@@ -57,11 +60,16 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 		return Config{}, err
 	}
 
+	CDCval, err := strconv.ParseBool(cfg[EnableCDC]) //Convert string value
+	if !ok {
+		return Config{}, fmt.Errorf("%v", err)
+	}
+
 	return Config{
-		APIKey:  cfg[APIKey],
-		BaseID:  cfg[BaseID],
-		TableID: cfg[TableID],
-		URL:     "https://airtable.com/" + base + table,
+		APIKey:    cfg[APIKey],
+		BaseID:    cfg[BaseID],
+		TableID:   cfg[TableID],
+		EnableCDC: CDCval,
 	}, nil
 }
 
