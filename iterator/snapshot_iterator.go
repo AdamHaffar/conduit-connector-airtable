@@ -9,10 +9,12 @@ import (
 	airtableclient "github.com/mehanizm/airtable"
 )
 
+const lastmodified = "last-modified"
+
 type SnapshotIterator struct {
-	client      *airtableclient.Client
-	data        *airtableclient.Records
-	internalPos position.Position
+	client   *airtableclient.Client
+	data     *airtableclient.Records
+	position position.Position
 }
 
 func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
@@ -34,9 +36,9 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 
 	sdk.Logger(ctx).Info().Msgf("%v", records)
 	s := &SnapshotIterator{
-		client:      client,
-		data:        records,
-		internalPos: NewPos,
+		client:   client,
+		data:     records,
+		position: NewPos,
 	}
 
 	return s, nil
@@ -46,7 +48,7 @@ func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
 	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "HasNext").Logger()
 	logger.Trace().Msg("HasNext()")
 
-	if s.internalPos.Index == len(s.data.Records) {
+	if s.position.Offset == "" {
 		return false
 	}
 
@@ -61,7 +63,7 @@ func (s *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 		return sdk.Record{}, err
 	}
 
-	s.internalPos.Index++ // increment internal position
+	s.position.Index++ // increment internal position
 	rec := sdk.Util.Source.NewRecordSnapshot(
 		s.buildRecordPosition(),
 		s.buildRecordMetadata(),
@@ -70,11 +72,17 @@ func (s *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 	)
 
 	return rec, nil
+
+	//	get current record in page
+	//	if record last in its page, get a new page. if no records
+	//
+	//
+	//
 }
 
 func (s *SnapshotIterator) buildRecordPosition() sdk.Position {
 
-	pos, err := s.internalPos.ToRecordPosition()
+	pos, err := s.position.ToRecordPosition()
 	if err != nil {
 		return nil
 	}
@@ -91,12 +99,12 @@ func (s *SnapshotIterator) buildRecordMetadata() map[string]string {
 
 // buildRecordKey returns the key for the record.
 func (s *SnapshotIterator) buildRecordKey() sdk.Data {
-	key := s.data.Records[s.internalPos.Index-1].ID //ID of individual record
+	key := s.data.Records[s.position.Index-1].ID //ID of individual record
 	return sdk.StructuredData{
 		"RecordID": key}
 }
 
 func (s *SnapshotIterator) buildRecordPayload() sdk.Data {
-	payload := s.data.Records[s.internalPos.Index-1].Fields
+	payload := s.data.Records[s.position.Index-1].Fields
 	return sdk.StructuredData{"Record Payload": payload}
 }

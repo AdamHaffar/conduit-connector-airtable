@@ -3,10 +3,14 @@ package position
 import (
 	"encoding/json"
 	sdk "github.com/conduitio/conduit-connector-sdk"
+	"time"
 )
 
 type Position struct {
-	Index int
+	RecordID       string
+	RecordSlicePos int
+	Offset         string
+	LastKnownTime  time.Time
 }
 
 func (p Position) ToRecordPosition() (sdk.Position, error) {
