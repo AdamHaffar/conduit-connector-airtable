@@ -7,7 +7,6 @@ import (
 )
 
 type Position struct {
-	RecordID       string
 	RecordSlicePos int
 	Offset         string
 	LastKnownTime  time.Time
