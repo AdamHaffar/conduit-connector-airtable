@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-const lastmodified = "last-modified"
-
 type SnapshotIterator struct {
 	client   *airtableclient.Client
 	data     *airtableclient.Records
