@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/AdamHaffar/conduit-connector-airtable/config"
 	"github.com/AdamHaffar/conduit-connector-airtable/iterator"
-	"strconv"
-
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	airtableclient "github.com/mehanizm/airtable"
 )
@@ -51,9 +49,7 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 
 	var err error
 
-	cdcEnabled, err := strconv.ParseBool(config.EnableCDC)
-
-	if cdcEnabled {
+	if s.config.EnableCDC {
 		s.iterator, err = iterator.NewCDCIterator(ctx, s.client, s.config, pos)
 		if err != nil {
 			logger.Error().Stack().Err(err).Msg("Error while creating cdc iterator")
@@ -61,7 +57,7 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 		}
 	}
 
-	if !cdcEnabled {
+	if !s.config.EnableCDC {
 		s.iterator, err = iterator.NewSnapshotIterator(ctx, s.client, s.config, pos)
 		if err != nil {
 			logger.Error().Stack().Err(err).Msg("Error while creating snapshot iterator")

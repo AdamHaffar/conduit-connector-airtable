@@ -7,9 +7,10 @@ import (
 )
 
 type Position struct {
-	RecordSlicePos int
-	Offset         string
-	LastKnownTime  time.Time
+	RecordSlicePos  int
+	Offset          string
+	LastKnownTime   time.Time
+	LastKnownRecord string
 }
 
 func (p Position) ToRecordPosition() (sdk.Position, error) {
