@@ -2,7 +2,10 @@ module github.com/AdamHaffar/conduit-connector-airtable
 
 go 1.18
 
-require github.com/conduitio/conduit-connector-sdk v0.2.1-0.20220823112121-47067cda967a
+require (
+	github.com/conduitio/conduit-connector-sdk v0.2.1-0.20220823112121-47067cda967a
+	github.com/mehanizm/airtable v0.2.6
+)
 
 require (
 	github.com/conduitio/conduit-connector-protocol v0.2.1-0.20220802135043-4b89a6c94401 // indirect
@@ -15,7 +18,6 @@ require (
 	github.com/matryer/is v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/mehanizm/airtable v0.2.6 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/rs/zerolog v1.27.0 // indirect

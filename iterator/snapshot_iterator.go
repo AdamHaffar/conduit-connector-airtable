@@ -55,6 +55,7 @@ func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
 	logger.Trace().Msg("HasNext()")
 
 	if s.position.Offset == "" { //Checks if last page (no offset)
+		// at this point we switch to CDC
 		return false
 	}
 
@@ -73,16 +74,23 @@ func (s *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 		return sdk.Record{}, err
 	}
 
-	pos, err := s.buildRecordPosition()
+	// get the record object, then transform it
+	// currently, s.position.RecordSlicePos is incremented in buildRecordPosition
+	// which means that you have to be careful and always call it first.
+	// hence, we should change the buildXYZ methods to work on a record object
+	// i.e. they shouldn't need to get the record themselves.
+	s.position.RecordSlicePos++
+	aRecord := s.data.Records[s.position.RecordSlicePos]
+	pos, err := s.buildRecordPosition(aRecord)
 	if err != nil {
 		return sdk.Record{}, err
 	}
 
 	rec := sdk.Util.Source.NewRecordSnapshot(
 		pos,
-		s.buildRecordMetadata(),
-		s.buildRecordKey(),
-		s.buildRecordPayload(),
+		s.buildRecordMetadata(aRecord),
+		s.buildRecordKey(aRecord),
+		s.buildRecordPayload(aRecord),
 	)
 
 	return rec, nil
@@ -98,13 +106,20 @@ func (s *SnapshotIterator) GetPage(ctx context.Context) {
 	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "NextPage").Logger()
 	logger.Trace().Msg("NextPage()")
 
-	r, err := s.table.GetRecords().InStringFormat("Europe/London", "en-gb").
+	r, err := s.table.GetRecords().
+		// this probably won't work always,
+		//depending on the time zone of the machine on which the connector is running
+		InStringFormat("Europe/London", "en-gb").
 		PageSize(20).
 		WithOffset(s.position.Offset).
-		WithSort(struct {
-			FieldName string
-			Direction string
-		}{FieldName: "Name", Direction: "asc"}).
+		WithSort(
+			struct {
+				FieldName string
+				Direction string
+			}{
+				FieldName: "Name",
+				Direction: "asc",
+			}).
 		Do()
 	if err != nil {
 		fmt.Printf("#error while getting records %v\n", err)
