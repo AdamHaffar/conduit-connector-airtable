@@ -40,7 +40,7 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 }
 
 func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
-	if s.internalPos.Index == len(s.data.Records)+1 {
+	if s.data == nil || s.internalPos.Index == len(s.data.Records)+1 {
 		return false
 	}
 	return true
