@@ -1,4 +1,4 @@
-module github.com/AdamHaffar/conduit-connector-airtable
+module github.com/conduitio-labs/conduit-connector-airtable
 
 go 1.18
 
