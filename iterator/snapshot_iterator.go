@@ -2,8 +2,8 @@ package iterator
 
 import (
 	"context"
-	"github.com/AdamHaffar/conduit-connector-airtable/config"
-	"github.com/AdamHaffar/conduit-connector-airtable/position"
+	"github.com/conduitio-labs/conduit-connector-airtable/config"
+	"github.com/conduitio-labs/conduit-connector-airtable/position"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	airtableclient "github.com/mehanizm/airtable"
 )
@@ -40,7 +40,7 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 }
 
 func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
-	if s.internalPos.Index == len(s.data.Records)+1 {
+	if s.data == nil || s.internalPos.Index == len(s.data.Records)+1 {
 		return false
 	}
 	return true
