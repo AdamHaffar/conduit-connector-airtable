@@ -1,7 +1,7 @@
 package main
 
 import (
-	airtable "github.com/AdamHaffar/conduit-connector-airtable"
+	airtable "github.com/conduitio-labs/conduit-connector-airtable"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 

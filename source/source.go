@@ -3,8 +3,8 @@ package airtable
 import (
 	"context"
 	"fmt"
-	"github.com/AdamHaffar/conduit-connector-airtable/config"
-	"github.com/AdamHaffar/conduit-connector-airtable/iterator"
+	"github.com/conduitio-labs/conduit-connector-airtable/config"
+	"github.com/conduitio-labs/conduit-connector-airtable/iterator"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	airtableclient "github.com/mehanizm/airtable"
 )
