@@ -15,6 +15,7 @@ type SnapshotIterator struct {
 	data     *airtableclient.Records
 	position position.Position
 	table    *airtableclient.Table
+	config   config.Config
 }
 
 func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
@@ -22,6 +23,7 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 	logger.Trace().Msg("Creating new snapshot iterator")
 
 	table := client.GetTable(config.BaseID, config.TableID)
+	IteratorConfig := config
 
 	records, err := table.GetRecords().
 		InStringFormat("Europe/London", "en-gb").
@@ -45,20 +47,24 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 		data:     records,
 		position: NewPos,
 		table:    table,
+		config:   IteratorConfig,
 	}
+
+	logger.Trace().Msgf("data: %v ", s.data.Records)
 
 	return s, nil
 }
 
 func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
 	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "HasNext").Logger()
-	logger.Trace().Msg("HasNext()")
-
-	if s.position.Offset == "" { //Checks if last page (no offset)
-		return false
-	}
+	logger.Trace().Msgf("offset: %v ", s.position.Offset)
 
 	if s.position.RecordSlicePos >= len(s.data.Records)-1 { //Checks if last record in the page
+
+		if s.position.Offset == "" { //Checks if last page (no offset)
+			return false
+		}
+
 		s.GetPage(ctx)
 	}
 
@@ -131,8 +137,8 @@ func (s *SnapshotIterator) buildRecordPosition() (sdk.Position, error) {
 
 func (s *SnapshotIterator) buildRecordMetadata() map[string]string {
 	return map[string]string{
-		"DatabaseID": config.BaseID,
-		"TableID":    config.TableID,
+		"DatabaseID": s.config.BaseID,
+		"TableID":    s.config.TableID,
 	}
 }
 
