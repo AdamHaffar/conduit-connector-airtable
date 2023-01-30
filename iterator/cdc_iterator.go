@@ -17,6 +17,7 @@ type CDCIterator struct {
 	data     *airtableclient.Records
 	position position.Position
 	table    *airtableclient.Table
+	config   config.Config
 }
 
 func NewCDCIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*CDCIterator, error) {
@@ -24,6 +25,7 @@ func NewCDCIterator(ctx context.Context, client *airtableclient.Client, config c
 	logger.Trace().Msg("Creating new cdc iterator")
 
 	table := client.GetTable(config.BaseID, config.TableID)
+	IteratorConfig := config
 
 	NewPos, err := position.ParseRecordPosition(pos)
 	if err != nil {
@@ -45,6 +47,7 @@ func NewCDCIterator(ctx context.Context, client *airtableclient.Client, config c
 		data:     nil,
 		position: NewPos,
 		table:    table,
+		config:   IteratorConfig,
 	}
 
 	s.GetRecords(ctx)
@@ -55,9 +58,10 @@ func NewCDCIterator(ctx context.Context, client *airtableclient.Client, config c
 func (s *CDCIterator) GetRecords(ctx context.Context) error {
 	logger := sdk.Logger(ctx).With().Str("Class", "cdc_iterator").Str("Method", "GetRecords").Logger()
 	logger.Trace().Msgf("Position: %v\n", s.position)
+	logger.Trace().Msgf("Position: %v\n", s.position.Offset)
 
-	timeString := s.position.LastKnownTime.Format("2/1/2006 3:04pm")
-	queryString := "LAST_MODIFIED_TIME()>=DATETIME_PARSE(\"" + timeString + "\", 'D MM YYYY HH:mm')"
+	timeString := s.position.LastKnownTime.Format("2/1/2006 15:04:05")
+	queryString := "LAST_MODIFIED_TIME()>DATETIME_PARSE(\"" + timeString + "\", 'D/M/YYYY HH:mm:ss')"
 
 	records, err := s.table.GetRecords().InStringFormat("Europe/London", "en-gb").
 		PageSize(5).
@@ -73,7 +77,9 @@ func (s *CDCIterator) GetRecords(ctx context.Context) error {
 	}
 
 	s.data = records
-	//logger.Info().Msgf("Data: %v\n", s.data.Records[s.position.RecordSlicePos].ID)
+	logger.Warn().Msgf("Data: %v\n", s.data.Records)
+	logger.Warn().Msgf("querystring: %v\n", queryString)
+	logger.Warn().Msgf("current time: %v\n", time.Now())
 	return nil
 }
 
@@ -81,13 +87,14 @@ func (s *CDCIterator) HasNext(ctx context.Context) bool {
 	logger := sdk.Logger(ctx).With().Str("Class", "cdc_iterator").Str("Method", "HasNext").Logger()
 	logger.Trace().Msg("HasNext()")
 
-	//logger.Trace().Msgf("%v\n", s.position.RecordSlicePos)
-	//logger.Trace().Msgf("%v\n", len(s.data.Records))
+	//logger.Warn().Msgf("%v\n", s.position.RecordSlicePos)
+	//logger.Warn().Msgf("%v\n", len(s.data.Records))
+	//logger.Warn().Msgf("%v\n", s.data.Offset)
 
 	if s.position.RecordSlicePos >= len(s.data.Records) { //if end of page has been reached
 		s.position.RecordSlicePos = 0
 
-		if s.data.Offset == "" {
+		if s.data.Offset == "" { //if there are not more pages left
 			s.GetRecords(ctx)
 			return false
 		}
@@ -121,13 +128,17 @@ func (s *CDCIterator) Next(ctx context.Context) (sdk.Record, error) {
 		s.buildRecordPayload(),
 	)
 
+	//CreatedTime, err := time.Parse("2/1/2006 15:04:05", s.data.Records[s.position.RecordSlicePos].CreatedTime)
+
+	//if CreatedTime > s.position.LastKnownTime
+
 	return rec, nil
 }
 
 func (s *CDCIterator) buildRecordPosition() (sdk.Position, error) {
 
 	s.position.Offset = s.data.Offset
-	timePos, err := time.Parse("2/1/2006 3:04pm", s.data.Records[s.position.RecordSlicePos-1].Fields[lastmodified].(string))
+	timePos, err := time.Parse("2/1/2006 15:04:05", s.data.Records[s.position.RecordSlicePos-1].Fields["datetime-str"].(string))
 	if err != nil {
 		return sdk.Position{}, err
 	}
@@ -143,8 +154,8 @@ func (s *CDCIterator) buildRecordPosition() (sdk.Position, error) {
 
 func (s *CDCIterator) buildRecordMetadata() map[string]string {
 	return map[string]string{
-		"DatabaseID": config.BaseID,
-		"TableID":    config.TableID,
+		"DatabaseID": s.config.BaseID,
+		"TableID":    s.config.TableID,
 	}
 }
 
