@@ -40,8 +40,6 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 	}
 	NewPos.Offset = records.Offset
 
-	//sdk.Logger(ctx).Info().Msgf("%v", records)
-
 	s := &SnapshotIterator{
 		client:   client,
 		data:     records,
@@ -92,12 +90,6 @@ func (s *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 	)
 
 	return rec, nil
-
-	//	get current record in page
-	//	if record last in its page, get a new page using offset.
-	//  if offset = "" start again from offset 0
-	//
-	//
 }
 
 func (s *SnapshotIterator) GetPage(ctx context.Context) {

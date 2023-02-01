@@ -7,10 +7,11 @@ import (
 )
 
 type Position struct {
-	RecordSlicePos  int
-	Offset          string
-	LastKnownTime   time.Time
-	LastKnownRecord string
+	RecordSlicePos   int    //internal position to index page of records from GET request
+	Offset           string //Offset to index different pages
+	LastKnownTime    time.Time
+	LastKnownRecord  string
+	SnapshotFinished bool //false until all the snapshot records have been handled
 }
 
 func (p Position) ToRecordPosition() (sdk.Position, error) {
