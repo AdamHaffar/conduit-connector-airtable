@@ -11,11 +11,11 @@ import (
 )
 
 type SnapshotIterator struct {
-	client   *airtableclient.Client
-	data     *airtableclient.Records
-	position position.Position
-	table    *airtableclient.Table
-	config   config.Config
+	client             *airtableclient.Client
+	currentPageRecords *airtableclient.Records
+	position           position.Position
+	table              *airtableclient.Table
+	config             config.Config
 }
 
 func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
@@ -23,32 +23,21 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 	logger.Trace().Msg("Creating new snapshot iterator")
 
 	table := client.GetTable(config.BaseID, config.TableID)
-	IteratorConfig := config
-
-	records, err := table.GetRecords().
-		InStringFormat("Europe/London", "en-gb").
-		PageSize(20).
-		Do()
-
-	if err != nil {
-		return &SnapshotIterator{}, fmt.Errorf("error while getting records")
-	}
 
 	NewPos, err := position.ParseRecordPosition(pos)
 	if err != nil {
-		return &SnapshotIterator{}, err
+		return nil, fmt.Errorf("error while parsing record position: %w", err)
 	}
-	NewPos.Offset = records.Offset
 
 	s := &SnapshotIterator{
-		client:   client,
-		data:     records,
-		position: NewPos,
-		table:    table,
-		config:   IteratorConfig,
+		client:             client,
+		currentPageRecords: nil,
+		position:           NewPos,
+		table:              table,
+		config:             config,
 	}
 
-	logger.Trace().Msgf("data: %v ", s.data.Records)
+	logger.Trace().Msgf("currentPageRecords: %v ", s.currentPageRecords.Records)
 
 	return s, nil
 }
@@ -57,7 +46,7 @@ func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
 	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "HasNext").Logger()
 	logger.Trace().Msgf("offset: %v ", s.position.Offset)
 
-	if s.position.RecordSlicePos >= len(s.data.Records)-1 { //Checks if last record in the page
+	if s.position.RecordSlicePos >= len(s.currentPageRecords.Records)-1 { //Checks if last record in the page
 
 		if s.position.Offset == "" { //Checks if last page (no offset)
 			return false
@@ -72,14 +61,16 @@ func (s *SnapshotIterator) HasNext(ctx context.Context) bool {
 func (s *SnapshotIterator) Next(ctx context.Context) (sdk.Record, error) {
 	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "Next").Logger()
 	logger.Trace().Msg("Next()")
-
 	if err := ctx.Err(); err != nil {
 		return sdk.Record{}, err
 	}
 
+	// increment internal position
+	s.position.RecordSlicePos++
+
 	pos, err := s.buildRecordPosition()
 	if err != nil {
-		return sdk.Record{}, err
+		return sdk.Record{}, fmt.Errorf("failed buildiong position: %w", err)
 	}
 
 	rec := sdk.Util.Source.NewRecordSnapshot(
@@ -96,32 +87,31 @@ func (s *SnapshotIterator) GetPage(ctx context.Context) {
 	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "NextPage").Logger()
 	logger.Trace().Msg("NextPage()")
 
-	r, err := s.table.GetRecords().InStringFormat("Europe/London", "en-gb").
+	r, err := s.table.GetRecords().
 		PageSize(20).
 		WithOffset(s.position.Offset).
 		WithSort(struct {
 			FieldName string
 			Direction string
-		}{FieldName: "Name", Direction: "asc"}).
+		}{FieldName: "last-modified", Direction: "asc"}).
 		Do()
 	if err != nil {
 		fmt.Printf("#error while getting records %v\n", err)
 	}
 
-	s.position.Offset = s.data.Offset
-	s.data = r
+	s.position.Offset = s.currentPageRecords.Offset
+	s.currentPageRecords = r
 	s.position.RecordSlicePos = 0
 }
 
 func (s *SnapshotIterator) buildRecordPosition() (sdk.Position, error) {
 
-	s.position.RecordSlicePos++ // increment internal position
-	s.position.Offset = s.data.Offset
+	s.position.Offset = s.currentPageRecords.Offset
 	s.position.LastKnownTime = time.Now()
 
 	pos, err := s.position.ToRecordPosition()
 	if err != nil {
-		return sdk.Position{}, fmt.Errorf("failed building Position: %w", err)
+		return sdk.Position{}, fmt.Errorf("failed marshalling Position: %w", err)
 	}
 
 	return pos, nil
@@ -136,12 +126,12 @@ func (s *SnapshotIterator) buildRecordMetadata() map[string]string {
 
 // buildRecordKey returns the key for the record.
 func (s *SnapshotIterator) buildRecordKey() sdk.Data {
-	key := s.data.Records[s.position.RecordSlicePos-1].ID //ID of individual record
+	key := s.currentPageRecords.Records[s.position.RecordSlicePos-1].ID //ID of individual record
 	return sdk.StructuredData{
 		"RecordID": key}
 }
 
 func (s *SnapshotIterator) buildRecordPayload() sdk.Data {
-	payload := s.data.Records[s.position.RecordSlicePos-1].Fields
+	payload := s.currentPageRecords.Records[s.position.RecordSlicePos-1].Fields
 	return sdk.StructuredData{"Record Payload": payload}
 }

@@ -13,23 +13,22 @@ import (
 const lastmodified = "last-modified"
 
 type CDCIterator struct {
-	client   *airtableclient.Client
-	data     *airtableclient.Records
-	position position.Position
-	table    *airtableclient.Table
-	config   config.Config
+	client             *airtableclient.Client
+	currentPageRecords *airtableclient.Records
+	position           position.Position
+	table              *airtableclient.Table
+	config             config.Config
 }
 
 func NewCDCIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*CDCIterator, error) {
 	logger := sdk.Logger(ctx).With().Str("Class", "cdc_iterator").Str("Method", "NewCDCIterator").Logger()
 	logger.Trace().Msg("Creating new cdc iterator")
 
-	table := client.GetTable(config.BaseID, config.TableID) //Airtable client
-	IteratorConfig := config                                //
+	table := client.GetTable(config.BaseID, config.TableID) //Airtable client 	//
 
 	NewPos, err := position.ParseRecordPosition(pos)
 	if err != nil {
-		return &CDCIterator{}, err
+		return &CDCIterator{}, fmt.Errorf("error while parsing record position: %w", err)
 	}
 
 	//if no previous position exists, set a new one
@@ -42,11 +41,11 @@ func NewCDCIterator(ctx context.Context, client *airtableclient.Client, config c
 	NewPos.RecordSlicePos = -1 //always resets the internal position
 
 	s := &CDCIterator{
-		client:   client,
-		data:     nil,
-		position: NewPos,
-		table:    table,
-		config:   IteratorConfig,
+		client:             client,
+		currentPageRecords: nil,
+		position:           NewPos,
+		table:              table,
+		config:             config,
 	}
 	err = s.GetRecords(ctx)
 	if err != nil {
@@ -71,8 +70,8 @@ func (s *CDCIterator) GetRecords(ctx context.Context) error {
 		-SORTS by last modified time to get handle records in order of oldest -> latest.
 		-Offset is passed to navigate index different pages (as only 5 records per request).
 	*/
-	records, err := s.table.GetRecords().InStringFormat("Europe/London", "en-gb").
-		PageSize(5).
+	records, err := s.table.GetRecords().
+		PageSize(20).
 		WithFilterFormula(queryString).
 		WithSort(struct {
 			FieldName string
@@ -84,7 +83,7 @@ func (s *CDCIterator) GetRecords(ctx context.Context) error {
 		return fmt.Errorf("error while getting records")
 	}
 
-	s.data = records
+	s.currentPageRecords = records
 	return nil
 }
 
@@ -92,10 +91,10 @@ func (s *CDCIterator) HasNext(ctx context.Context) bool {
 	logger := sdk.Logger(ctx).With().Str("Class", "cdc_iterator").Str("Method", "HasNext").Logger()
 	logger.Trace().Msg("HasNext()")
 
-	if s.position.RecordSlicePos >= len(s.data.Records)-1 { //if end of page has been reached
+	if s.position.RecordSlicePos >= len(s.currentPageRecords.Records)-1 { //if end of page has been reached
 		s.position.RecordSlicePos = -1
 
-		if s.data.Offset == "" { //if there are no more pages left
+		if s.currentPageRecords.Offset == "" { //if there are no more pages left
 			err := s.GetRecords(ctx)
 			if err != nil {
 				return false
@@ -122,7 +121,7 @@ func (s *CDCIterator) Next(ctx context.Context) (sdk.Record, error) {
 	s.position.RecordSlicePos++
 
 	//stores the CreatedTime value of the record in ISO format
-	CreatedTime, err := time.Parse("2006-01-02T15:04:05Z0700", s.data.Records[s.position.RecordSlicePos].CreatedTime)
+	CreatedTime, err := time.Parse("2006-01-02T15:04:05Z0700", s.currentPageRecords.Records[s.position.RecordSlicePos].CreatedTime)
 
 	if s.position.SnapshotFinished {
 		if CreatedTime.Before(s.position.LastKnownTime) { //if the record was already created before the LastKnownTime,
@@ -164,7 +163,7 @@ func (s *CDCIterator) Next(ctx context.Context) (sdk.Record, error) {
 			pos,
 			s.buildRecordMetadata(),
 			s.buildRecordKey(),
-			nil, //Airtable does not supply old record data unless local caching is used
+			nil, //Airtable does not supply old record currentPageRecords unless local caching is used
 			s.buildRecordPayload(),
 		), nil
 
@@ -178,13 +177,13 @@ func (s *CDCIterator) Next(ctx context.Context) (sdk.Record, error) {
 }
 
 func (s *CDCIterator) buildRecordPosition() (sdk.Position, error) {
-	timePos, err := time.Parse("2/1/2006 15:04:05", s.data.Records[s.position.RecordSlicePos].Fields["datetime-str"].(string))
+	timePos, err := time.Parse("2/1/2006 15:04:05", s.currentPageRecords.Records[s.position.RecordSlicePos].Fields["datetime-str"].(string))
 	if err != nil {
 		return sdk.Position{}, err
 	}
 
 	s.position.LastKnownTime = timePos
-	s.position.Offset = s.data.Offset
+	s.position.Offset = s.currentPageRecords.Offset
 
 	pos, err := s.position.ToRecordPosition()
 	if err != nil {
@@ -201,12 +200,12 @@ func (s *CDCIterator) buildRecordMetadata() map[string]string {
 }
 
 func (s *CDCIterator) buildRecordKey() sdk.Data {
-	key := s.data.Records[s.position.RecordSlicePos].ID //ID of individual record
+	key := s.currentPageRecords.Records[s.position.RecordSlicePos].ID //ID of individual record
 	return sdk.StructuredData{
 		"RecordID": key}
 }
 
 func (s *CDCIterator) buildRecordPayload() sdk.Data {
-	payload := s.data.Records[s.position.RecordSlicePos].Fields
+	payload := s.currentPageRecords.Records[s.position.RecordSlicePos].Fields
 	return sdk.StructuredData{"Record Payload": payload}
 }

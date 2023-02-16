@@ -55,9 +55,7 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 			logger.Error().Stack().Err(err).Msg("Error while creating cdc iterator")
 			return fmt.Errorf("couldn't create a cdc iterator: %w", err)
 		}
-	}
-
-	if !s.config.EnableCDC {
+	} else {
 		s.iterator, err = iterator.NewSnapshotIterator(ctx, s.client, s.config, pos)
 		if err != nil {
 			logger.Error().Stack().Err(err).Msg("Error while creating snapshot iterator")
