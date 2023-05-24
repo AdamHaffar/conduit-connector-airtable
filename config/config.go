@@ -62,7 +62,7 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 
 	cdcval, err := strconv.ParseBool(cfg[EnableCDC]) //Convert string value
 	if !ok {
-		return Config{}, fmt.Errorf("%v", err)
+		return Config{}, err
 	}
 
 	return Config{

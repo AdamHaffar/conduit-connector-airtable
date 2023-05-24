@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-const LASTMODIFIED = "last-modified"
-const LASTMODIFIEDSTR = "last-modified-str"
+const LastModified = "last-modified"
+const LastModifiedStr = "last-modified-str"
 
 type CDCIterator struct {
 	client             *airtableclient.Client
@@ -77,7 +77,7 @@ func (s *CDCIterator) GetRecords(ctx context.Context) error {
 		WithSort(struct {
 			FieldName string
 			Direction string
-		}{FieldName: LASTMODIFIED, Direction: "asc"}).
+		}{FieldName: LastModified, Direction: "asc"}).
 		WithOffset(s.position.Offset).
 		Do()
 	if err != nil {
@@ -178,7 +178,7 @@ func (s *CDCIterator) Next(ctx context.Context) (sdk.Record, error) {
 }
 
 func (s *CDCIterator) buildRecordPosition() (sdk.Position, error) {
-	timePos, err := time.Parse("2/1/2006 15:04:05", s.currentPageRecords.Records[s.position.RecordSlicePos].Fields[LASTMODIFIEDSTR].(string))
+	timePos, err := time.Parse("2/1/2006 15:04:05", s.currentPageRecords.Records[s.position.RecordSlicePos].Fields[LastModifiedStr].(string))
 	if err != nil {
 		return sdk.Position{}, err
 	}
