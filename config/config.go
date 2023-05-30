@@ -12,7 +12,6 @@ const (
 	BaseID    = "base_ID"    //required
 	TableID   = "table_ID"   //required
 	EnableCDC = "enable_cdc" //required
-
 )
 
 var (
@@ -60,8 +59,14 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 		return Config{}, err
 	}
 
-	cdcval, err := strconv.ParseBool(cfg[EnableCDC]) //Convert string value
+	cdcstr, ok := cfg[EnableCDC]
 	if !ok {
+		return Config{}, fmt.Errorf("%q config value must be set", EnableCDC)
+	}
+
+	//Convert string value
+	cdcbool, err := strconv.ParseBool(cdcstr)
+	if err != nil {
 		return Config{}, err
 	}
 
@@ -69,7 +74,7 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 		APIKey:    cfg[APIKey],
 		BaseID:    cfg[BaseID],
 		TableID:   cfg[TableID],
-		EnableCDC: cdcval,
+		EnableCDC: cdcbool,
 	}, nil
 }
 
