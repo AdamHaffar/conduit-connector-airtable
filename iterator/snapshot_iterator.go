@@ -96,7 +96,7 @@ func (s *SnapshotIterator) GetPage(ctx context.Context) {
 		}{FieldName: "last-modified", Direction: "asc"}).
 		Do()
 	if err != nil {
-		fmt.Printf("#error while getting records %v\n", err)
+		fmt.Printf("error while getting records %v\n", err)
 	}
 
 	s.position.Offset = s.currentPageRecords.Offset
