@@ -11,11 +11,27 @@ import (
 )
 
 type SnapshotIterator struct {
-	client             *airtableclient.Client
 	currentPageRecords *airtableclient.Records
 	position           position.Position
 	table              *airtableclient.Table
 	config             config.Config
+	client             AirtableClientInterface
+}
+
+type AirtableClientInterface interface {
+	GetTable(baseID, tableID string) *airtableclient.Table
+}
+
+type AirtableClientInterface interface {
+	GetTable(baseID, tableID string) *airtableclient.Table
+}
+
+type AirtableClientInterface interface {
+	GetTable(baseID, tableID string) *airtableclient.Table
+}
+
+type AirtableClientInterface interface {
+	GetTable(baseID, tableID string) *airtableclient.Table
 }
 
 func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
