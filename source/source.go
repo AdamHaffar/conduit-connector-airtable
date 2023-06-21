@@ -11,7 +11,7 @@ import (
 
 type Source struct {
 	sdk.UnimplementedSource
-	client           *airtableclient.Client
+	client           AirtableClientInterface
 	config           config.Config
 	lastPositionRead sdk.Position
 	iterator         Iterator
@@ -24,6 +24,14 @@ func NewSource() sdk.Source {
 type Iterator interface {
 	HasNext(ctx context.Context) bool
 	Next(ctx context.Context) (sdk.Record, error)
+}
+
+type AirtableClientInterface interface {
+	GetTable(baseID, tableID string) *airtableclient.Table
+}
+
+type AirtableTableInterface interface {
+	GetRecords() *airtableclient.GetRecordsConfig
 }
 
 func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {

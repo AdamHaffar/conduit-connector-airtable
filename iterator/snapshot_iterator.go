@@ -13,7 +13,7 @@ import (
 type SnapshotIterator struct {
 	currentPageRecords *airtableclient.Records
 	position           position.Position
-	table              *airtableclient.Table
+	table              AirtableTableInterface
 	config             config.Config
 	client             AirtableClientInterface
 }
@@ -22,19 +22,11 @@ type AirtableClientInterface interface {
 	GetTable(baseID, tableID string) *airtableclient.Table
 }
 
-type AirtableClientInterface interface {
-	GetTable(baseID, tableID string) *airtableclient.Table
+type AirtableTableInterface interface {
+	GetRecords() *airtableclient.GetRecordsConfig
 }
 
-type AirtableClientInterface interface {
-	GetTable(baseID, tableID string) *airtableclient.Table
-}
-
-type AirtableClientInterface interface {
-	GetTable(baseID, tableID string) *airtableclient.Table
-}
-
-func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
+func NewSnapshotIterator(ctx context.Context, client AirtableClientInterface, config config.Config, pos sdk.Position) (*SnapshotIterator, error) {
 	logger := sdk.Logger(ctx).With().Str("Class", "snapshot_iterator").Str("Method", "NewSnapshotIterator").Logger()
 	logger.Trace().Msg("Creating new snapshot iterator")
 
@@ -52,8 +44,6 @@ func NewSnapshotIterator(ctx context.Context, client *airtableclient.Client, con
 		table:              table,
 		config:             config,
 	}
-
-	logger.Trace().Msgf("currentPageRecords: %v ", s.currentPageRecords.Records)
 
 	return s, nil
 }

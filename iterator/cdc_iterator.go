@@ -14,14 +14,14 @@ const LastModified = "last-modified"
 const LastModifiedStr = "last-modified-str"
 
 type CDCIterator struct {
-	client             *airtableclient.Client
+	client             AirtableClientInterface
 	currentPageRecords *airtableclient.Records
 	position           position.Position
 	table              *airtableclient.Table
 	config             config.Config
 }
 
-func NewCDCIterator(ctx context.Context, client *airtableclient.Client, config config.Config, pos sdk.Position) (*CDCIterator, error) {
+func NewCDCIterator(ctx context.Context, client AirtableClientInterface, config config.Config, pos sdk.Position) (*CDCIterator, error) {
 	logger := sdk.Logger(ctx).With().Str("Class", "cdc_iterator").Str("Method", "NewCDCIterator").Logger()
 	logger.Trace().Msg("Creating new cdc iterator")
 
