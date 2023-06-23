@@ -6,13 +6,13 @@ import (
 	mock_iterator "github.com/conduitio-labs/conduit-connector-airtable/iterator/mock"
 	"github.com/conduitio-labs/conduit-connector-airtable/position"
 	"github.com/golang/mock/gomock"
-	is "github.com/matryer/is"
+	"github.com/matryer/is"
 	airtableclient "github.com/mehanizm/airtable"
 	"testing"
 	"time"
 )
 
-func Test_NewSnapshotIterator(t *testing.T) {
+func Test_NewCDCIterator(t *testing.T) {
 	t.Parallel()
 	is2 := is.New(t)
 

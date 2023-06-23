@@ -17,7 +17,7 @@ type CDCIterator struct {
 	client             AirtableClientInterface
 	currentPageRecords *airtableclient.Records
 	position           position.Position
-	table              *airtableclient.Table
+	table              AirtableTableInterface
 	config             config.Config
 }
 
