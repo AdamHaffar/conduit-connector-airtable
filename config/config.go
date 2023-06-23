@@ -3,13 +3,15 @@ package config
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
 const (
-	APIKey  = "api_key"  //required
-	BaseID  = "base_ID"  //required
-	TableID = "table_ID" //required
+	APIKey    = "api_key"    //required
+	BaseID    = "base_ID"    //required
+	TableID   = "table_ID"   //required
+	EnableCDC = "enable_cdc" //required
 )
 
 var (
@@ -17,10 +19,10 @@ var (
 )
 
 type Config struct {
-	APIKey  string
-	BaseID  string
-	TableID string
-	URL     string
+	APIKey    string
+	BaseID    string
+	TableID   string
+	EnableCDC bool
 }
 
 func ParseBaseConfig(cfg map[string]string) (Config, error) {
@@ -57,11 +59,22 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 		return Config{}, err
 	}
 
+	cdcstr, ok := cfg[EnableCDC]
+	if !ok {
+		return Config{}, fmt.Errorf("%q config value must be set", EnableCDC)
+	}
+
+	//Convert string value
+	cdcbool, err := strconv.ParseBool(cdcstr)
+	if err != nil {
+		return Config{}, err
+	}
+
 	return Config{
-		APIKey:  cfg[APIKey],
-		BaseID:  cfg[BaseID],
-		TableID: cfg[TableID],
-		URL:     "https://airtable.com/" + base + table,
+		APIKey:    cfg[APIKey],
+		BaseID:    cfg[BaseID],
+		TableID:   cfg[TableID],
+		EnableCDC: cdcbool,
 	}, nil
 }
 

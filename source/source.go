@@ -3,16 +3,15 @@ package airtable
 import (
 	"context"
 	"fmt"
-	"github.com/AdamHaffar/conduit-connector-airtable/config"
-	"github.com/AdamHaffar/conduit-connector-airtable/iterator"
-
+	"github.com/conduitio-labs/conduit-connector-airtable/config"
+	"github.com/conduitio-labs/conduit-connector-airtable/iterator"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	airtableclient "github.com/mehanizm/airtable"
 )
 
 type Source struct {
 	sdk.UnimplementedSource
-	client           *airtableclient.Client
+	client           AirtableClientInterface
 	config           config.Config
 	lastPositionRead sdk.Position
 	iterator         Iterator
@@ -25,6 +24,14 @@ func NewSource() sdk.Source {
 type Iterator interface {
 	HasNext(ctx context.Context) bool
 	Next(ctx context.Context) (sdk.Record, error)
+}
+
+type AirtableClientInterface interface {
+	GetTable(baseID, tableID string) *airtableclient.Table
+}
+
+type AirtableTableInterface interface {
+	GetRecords() *airtableclient.GetRecordsConfig
 }
 
 func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
@@ -42,7 +49,6 @@ func (s *Source) Configure(ctx context.Context, cfg map[string]string) error {
 }
 
 func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
-
 	logger := sdk.Logger(ctx).With().Str("Class", "Source").Str("Method", "Open").Logger()
 	logger.Trace().Msg("Starting Open the Source Connector...")
 
@@ -50,10 +56,18 @@ func (s *Source) Open(ctx context.Context, pos sdk.Position) error {
 
 	var err error
 
-	s.iterator, err = iterator.NewSnapshotIterator(ctx, s.client, s.config, pos)
-	if err != nil {
-		logger.Error().Stack().Err(err).Msg("Error while creating iterator")
-		return fmt.Errorf("couldn't create an iterator: %w", err)
+	if s.config.EnableCDC {
+		s.iterator, err = iterator.NewCDCIterator(ctx, s.client, s.config, pos)
+		if err != nil {
+			logger.Error().Stack().Err(err).Msg("Error while creating cdc iterator")
+			return fmt.Errorf("couldn't create a cdc iterator: %w", err)
+		}
+	} else {
+		s.iterator, err = iterator.NewSnapshotIterator(ctx, s.client, s.config, pos)
+		if err != nil {
+			logger.Error().Stack().Err(err).Msg("Error while creating snapshot iterator")
+			return fmt.Errorf("couldn't create a snapshot iterator: %w", err)
+		}
 	}
 
 	logger.Trace().Msg("Successfully Created the Source Connector")
