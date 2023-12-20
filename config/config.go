@@ -66,7 +66,7 @@ func ParseBaseConfig(cfg map[string]string) (Config, error) {
 }
 
 func checkEmpty(cfg map[string]string) error {
-	if cfg == nil || len(cfg) == 0 {
+	if cfg == nil {
 		return ErrEmptyConfig
 	}
 	return nil
