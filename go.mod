@@ -1,6 +1,6 @@
 module github.com/AdamHaffar/conduit-connector-airtable
 
-go 1.18
+go 1.21
 
 require github.com/conduitio/conduit-connector-sdk v0.2.1-0.20220823112121-47067cda967a
 
